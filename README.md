@@ -14,11 +14,11 @@ The goal is to build a modular Employee Management System that supports:
 - REST API conversion of all features
 
 ## Tech Stack
-**Backend**: Python, Django, Django REST Framework
-**Authentication**: JWT (Access & Refresh Tokens)
-**Database**: SQLite (default, configurable)
-**Frontend** (Planned): HTML/CSS/JavaScript or JS Framework
-**API Testing**: Postman
+- **Backend**: Python, Django, Django REST Framework
+- **Authentication**: JWT (Access & Refresh Tokens)
+- **Database**: SQLite (default, configurable)
+- **Frontend** (Planned): HTML/CSS/JavaScript or JS Framework
+- **API Testing**: Postman
 
 ## Current Status
 ✅ **Completed**
