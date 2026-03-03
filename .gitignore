@@ -1,33 +1,43 @@
+# =========================
 # Virtual Environment
-work_env/
+# =========================
 venv/
 env/
+.venv/
+/work_env/
 
+# =========================
 # Environment Variables
+# =========================
 .env
+.env.*
 
+# =========================
 # Python Cache
+# =========================
 __pycache__/
 *.py[cod]
 *$py.class
 
-# Django Migration Files
-**/migrations/*
-!**/migrations/__init__.py
-
-# SQLite Database
+# =========================
+# Database
+# =========================
 db.sqlite3
 *.sqlite3
 
-# Virtual Env
-env/
-venv/
-.venv/
-
+# =========================
 # IDE
+# =========================
 .vscode/
 .idea/
 
-# OS files
+# =========================
+# OS Files
+# =========================
 .DS_Store
 Thumbs.db
+
+# =========================
+# Django Migration Files
+# =========================
+**/migrations/*
