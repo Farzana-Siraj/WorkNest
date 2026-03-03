@@ -73,7 +73,7 @@
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
 <script>
-    const API_BASE = "/api/";
+    const API_BASE = "/api/v1";
     const token = localStorage.getItem("access");
 
     // Protect Dashboard
@@ -87,10 +87,12 @@
     // Load profile on page load
     window.onload = function() {
         loadProfile();
+        loadForms();
     };
 
+    // ================= USER PROFILE =================
     function loadProfile() {
-        axios.get(API_BASE + "auth/profile/")
+        axios.get(API_BASE + "/accounts/profile/")
         .then(response => {
             document.getElementById("user-info").innerText =
                 "Logged in as: " + response.data.username;
@@ -109,15 +111,38 @@
     function createForm() {
         const name = document.getElementById("form_name").value;
 
-        axios.post(API_BASE + "forms/", {
+        axios.post(API_BASE + "/forms/create/", {
             name: name
         })
         .then(response => {
             alert("Form created successfully");
             document.getElementById("form_name").value = "";
+            loadForms();
         })
         .catch(error => {
             console.log(error.response.data);
+        });
+    }
+
+    // Load existing forms
+    function loadForms() {
+        axios.get(API_BASE + "/forms/create/")
+        .then(response => {
+            const formsList = document.getElementById("forms-list");
+            formsList.innerHTML = "";
+
+            response.data.forEach(form => {
+                formsList.innerHTML += `
+                    <div class="card">
+                        <strong>${form.name}</strong>
+                        <br>
+                        Created At: ${form.created_at}
+                    </div>
+                `;
+            });
+        })
+        .catch(error => {
+            console.log(error);
         });
     }
 
