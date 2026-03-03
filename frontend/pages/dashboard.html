@@ -237,13 +237,15 @@
 
             response.data.forEach(field => {
                 fieldsList.innerHTML += `
-                    <div class="card">
+                    <div class="card draggable"
+                        draggable="true"
+                        data-id="${field.id}">
                         <strong>${field.label}</strong>
                         (${field.field_type})
-                        - Order: ${field.order}
                     </div>
                 `;
             });
+            enableDrag();
         })
         .catch(error => console.log(error));
     }
@@ -338,6 +340,81 @@
         })
         .catch(error => console.log(error));
     }
+
+    function updateOrder() {
+        const formId = document.getElementById("form_select").value;
+        const cards = document.querySelectorAll("#fields-list .draggable");
+
+        let fields = [];
+
+        cards.forEach((card, index) => {
+            fields.push({
+                id: card.dataset.id,
+                order: index + 1
+            });
+        });
+
+        axios.put(API_BASE + `/forms/${formId}/fields/reorder/`, {
+            fields: fields
+        })
+        .then(response => {
+            console.log("Order updated");
+        })
+        .catch(error => console.log(error));
+    }
+
+    function enableDrag() {
+        const container = document.getElementById("fields-list");
+        const draggables = container.querySelectorAll(".draggable");
+
+        let draggedItem = null;
+
+        draggables.forEach(item => {
+
+            item.addEventListener("dragstart", function () {
+                draggedItem = this;
+            });
+
+            item.addEventListener("dragover", function (e) {
+                e.preventDefault();
+            });
+
+            item.addEventListener("drop", function (e) {
+                e.preventDefault();
+
+                if (draggedItem !== this) {
+                    container.insertBefore(draggedItem, this);
+                    updateOrder();
+                }
+            });
+        });
+    }
+
+     // ================= DRAG & DROP =================
+    let draggedItem = null;
+
+    document.addEventListener("dragstart", function (e) {
+        if (e.target.classList.contains("draggable")) {
+            if (target) {
+                draggedItem = target;
+            }
+        }
+    });
+
+    document.addEventListener("dragover", function (e) {
+        if (e.target.closest(".draggable")) {
+            e.preventDefault();
+        }
+    });
+
+    document.addEventListener("drop", function (e) {
+        const target = e.target.closest(".draggable");
+        if (target && draggedItem !== target) {
+            e.preventDefault();
+            target.parentNode.insertBefore(draggedItem, target);
+            updateOrder();
+        }
+    });
 
     // ================= PAGE LOAD =================
     document.addEventListener("DOMContentLoaded", function() {
