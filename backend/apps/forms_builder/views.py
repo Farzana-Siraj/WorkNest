@@ -46,3 +46,22 @@ class FormFieldListCreateView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ReorderFieldsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request, form_id):
+        try:
+            form = Form.objects.get(id=form_id, created_by=request.user)
+        except Form.DoesNotExist:
+            return Response({"error": "Not allowed"}, status=403)
+
+        fields_data = request.data.get("fields", [])
+
+        for item in fields_data:
+            FormField.objects.filter(id=item["id"], form=form).update(
+                order=item["order"]
+            )
+
+        return Response({"message": "Order updated successfully"})

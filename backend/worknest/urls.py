@@ -25,4 +25,5 @@ urlpatterns = [
     path("dashboard/", TemplateView.as_view(template_name="dashboard.html")),
     path("api/v1/accounts/", include("apps.accounts.urls")),
     path("api/v1/forms/", include("apps.forms_builder.urls")),
+    path("api/v1/employees/", include("apps.employees.urls")),
 ]

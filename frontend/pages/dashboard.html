@@ -92,11 +92,31 @@
     <div id="fields-list"></div>
 </div>
 
+<!--  -->
 <hr>
 
 <!-- ================= EMPLOYEE SECTION ================= -->
 <div class="section">
     <h2>Employees</h2>
+    <div id="employees-list"></div>
+</div>
+
+<div class="section">
+    <h2>Create Employee</h2>
+
+    <select id="employee_form_select"></select>
+
+    <div id="dynamic-form-container"></div>
+
+    <button onclick="submitEmployee()">Submit Employee</button>
+</div>
+
+<div class="section">
+    <h2>Employee List</h2>
+
+    <input type="text" id="search_input" placeholder="Search by any value">
+    <button onclick="loadEmployees()">Search</button>
+
     <div id="employees-list"></div>
 </div>
 
@@ -157,9 +177,11 @@
         .then(response => {
             const formsList = document.getElementById("forms-list");
             const formSelect = document.getElementById("form_select");
+            const employeeSelect = document.getElementById("employee_form_select");
             
             formsList.innerHTML = "";
             formSelect.innerHTML = "";
+            employeeSelect.innerHTML = "";
 
             response.data.forEach(form => {
                 formsList.innerHTML += `
@@ -170,6 +192,11 @@
                     </div>
                 `;
                 formSelect.innerHTML += `
+                    <option value="${form.id}">
+                        ${form.name}
+                    </option>
+                `;
+                employeeSelect.innerHTML += `
                     <option value="${form.id}">
                         ${form.name}
                     </option>
@@ -210,16 +237,184 @@
 
             response.data.forEach(field => {
                 fieldsList.innerHTML += `
-                    <div class="card">
+                    <div class="card draggable"
+                        draggable="true"
+                        data-id="${field.id}">
                         <strong>${field.label}</strong>
                         (${field.field_type})
-                        - Order: ${field.order}
                     </div>
+                `;
+            });
+            enableDrag();
+        })
+        .catch(error => console.log(error));
+    }
+
+    // 
+    function renderDynamicForm(formId) {
+        axios.get(API_BASE + `/forms/${formId}/fields/`)
+        .then(response => {
+            const container = document.getElementById("dynamic-form-container");
+            container.innerHTML = "";
+
+            response.data.forEach(field => {
+                container.innerHTML += `
+                    <label>${field.label}</label>
+                    <input 
+                        type="${field.field_type}" 
+                        id="field_${field.id}" 
+                        ${field.required ? "required" : ""}
+                    />
                 `;
             });
         })
         .catch(error => console.log(error));
     }
+
+    // Submit Employee Data
+    function submitEmployee() {
+        const formId = document.getElementById("employee_form_select").value;
+
+        axios.get(API_BASE + `/forms/${formId}/fields/`)
+        .then(response => {
+
+            let data = {};
+
+            response.data.forEach(field => {
+                const value = document.getElementById(`field_${field.id}`).value;
+                data[field.label] = value;
+            });
+
+            axios.post(API_BASE + `/employees/`, {
+                form: formId,
+                data: data
+            })
+            .then(res => {
+                alert("Employee created successfully");
+            })
+            .catch(err => console.log(err.response.data));
+
+        });
+    }
+
+    function loadEmployees() {
+        axios.get(API_BASE + `/employees/`)
+        .then(response => {
+            const list = document.getElementById("employees-list");
+            list.innerHTML = "";
+
+            const searchValue = document.getElementById("search_input").value.toLowerCase();
+
+            response.data.forEach(employee => {
+
+                const dataString = JSON.stringify(employee.data).toLowerCase();
+
+                if (dataString.includes(searchValue)) {
+
+                    let fieldsHTML = "";
+
+                    for (const key in employee.data) {
+                        fieldsHTML += `<div><strong>${key}:</strong> ${employee.data[key]}</div>`;
+                    }
+
+                    list.innerHTML += `
+                        <div class="card">
+                            <div><strong>Employee ID:</strong> ${employee.id}</div>
+                            ${fieldsHTML}
+                            <button onclick="deleteEmployee(${employee.id})">
+                                Delete
+                            </button>
+                        </div>
+                    `;
+                }
+            });
+        })
+        .catch(error => console.log(error));
+    }
+
+    function deleteEmployee(id) {
+        axios.delete(API_BASE + `/employees/${id}/`)
+        .then(response => {
+            alert("Deleted successfully");
+            loadEmployees();
+        })
+        .catch(error => console.log(error));
+    }
+
+    function updateOrder() {
+        const formId = document.getElementById("form_select").value;
+        const cards = document.querySelectorAll("#fields-list .draggable");
+
+        let fields = [];
+
+        cards.forEach((card, index) => {
+            fields.push({
+                id: card.dataset.id,
+                order: index + 1
+            });
+        });
+
+        axios.put(API_BASE + `/forms/${formId}/fields/reorder/`, {
+            fields: fields
+        })
+        .then(response => {
+            console.log("Order updated");
+        })
+        .catch(error => console.log(error));
+    }
+
+    function enableDrag() {
+        const container = document.getElementById("fields-list");
+        const draggables = container.querySelectorAll(".draggable");
+
+        let draggedItem = null;
+
+        draggables.forEach(item => {
+
+            item.addEventListener("dragstart", function () {
+                draggedItem = this;
+            });
+
+            item.addEventListener("dragover", function (e) {
+                e.preventDefault();
+            });
+
+            item.addEventListener("drop", function (e) {
+                e.preventDefault();
+
+                if (draggedItem !== this) {
+                    container.insertBefore(draggedItem, this);
+                    updateOrder();
+                }
+            });
+        });
+    }
+
+     // ================= DRAG & DROP =================
+    let draggedItem = null;
+
+    document.addEventListener("dragstart", function (e) {
+        if (e.target.classList.contains("draggable")) {
+            if (target) {
+                draggedItem = target;
+            }
+        }
+    });
+
+    document.addEventListener("dragover", function (e) {
+        if (e.target.closest(".draggable")) {
+            e.preventDefault();
+        }
+    });
+
+    document.addEventListener("drop", function (e) {
+        const target = e.target.closest(".draggable");
+        if (target && draggedItem !== target) {
+            e.preventDefault();
+            target.parentNode.insertBefore(draggedItem, target);
+            updateOrder();
+        }
+    });
 
     // ================= PAGE LOAD =================
     document.addEventListener("DOMContentLoaded", function() {
@@ -229,6 +424,10 @@
         document.getElementById("form_select")
             .addEventListener("change", function() {
                 loadFields(this.value);
+            });
+        document.getElementById("employee_form_select")
+            .addEventListener("change", function() {
+                renderDynamicForm(this.value);
             });
     });
     
