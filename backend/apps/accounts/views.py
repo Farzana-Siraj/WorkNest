@@ -1,8 +1,9 @@
+from django.contrib.auth.password_validation import validate_password
 from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .serializers import RegisterSerializer
+from .serializers import ChangePasswordSerializer, RegisterSerializer
 
 
 class RegisterView(APIView):
@@ -36,13 +37,21 @@ class ChangePasswordView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
-        user = request.user
-        new_password = request.data.get("new_password")
+        serializer = ChangePasswordSerializer(data=request.data)
 
-        if not new_password:
-            return Response({"error": "New password required"}, status=400)
+        if serializer.is_valid():
+            user = request.user
 
-        user.set_password(new_password)
-        user.save()
+            if not user.check_password(serializer.validated_data["old_password"]):
+                return Response({"error": "Old password is incorrect"}, status=400)
 
-        return Response({"message": "Password changed successfully"})
+            new_password = serializer.validated_data["new_password"]
+
+            validate_password(new_password, user)
+
+            user.set_password(new_password)
+            user.save()
+
+            return Response({"message": "Password changed successfully"})
+
+        return Response(serializer.errors, status=400)
