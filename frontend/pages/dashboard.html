@@ -92,6 +92,19 @@
     <div id="fields-list"></div>
 </div>
 
+<!--  -->
+<hr>
+
+<div class="section">
+    <h2>Create Employee</h2>
+
+    <select id="employee_form_select"></select>
+
+    <div id="dynamic-form-container"></div>
+
+    <button onclick="submitEmployee()">Submit Employee</button>
+</div>
+
 <hr>
 
 <!-- ================= EMPLOYEE SECTION ================= -->
@@ -157,9 +170,11 @@
         .then(response => {
             const formsList = document.getElementById("forms-list");
             const formSelect = document.getElementById("form_select");
+            const employeeSelect = document.getElementById("employee_form_select");
             
             formsList.innerHTML = "";
             formSelect.innerHTML = "";
+            employeeSelect.innerHTML = "";
 
             response.data.forEach(form => {
                 formsList.innerHTML += `
@@ -170,6 +185,11 @@
                     </div>
                 `;
                 formSelect.innerHTML += `
+                    <option value="${form.id}">
+                        ${form.name}
+                    </option>
+                `;
+                employeeSelect.innerHTML += `
                     <option value="${form.id}">
                         ${form.name}
                     </option>
@@ -221,6 +241,53 @@
         .catch(error => console.log(error));
     }
 
+    // 
+    function renderDynamicForm(formId) {
+        axios.get(API_BASE + `/forms/${formId}/fields/`)
+        .then(response => {
+            const container = document.getElementById("dynamic-form-container");
+            container.innerHTML = "";
+
+            response.data.forEach(field => {
+                container.innerHTML += `
+                    <label>${field.label}</label>
+                    <input 
+                        type="${field.field_type}" 
+                        id="field_${field.id}" 
+                        ${field.required ? "required" : ""}
+                    />
+                `;
+            });
+        })
+        .catch(error => console.log(error));
+    }
+
+    // Submit Employee Data
+    function submitEmployee() {
+        const formId = document.getElementById("employee_form_select").value;
+
+        axios.get(API_BASE + `/forms/${formId}/fields/`)
+        .then(response => {
+
+            let data = {};
+
+            response.data.forEach(field => {
+                const value = document.getElementById(`field_${field.id}`).value;
+                data[field.label] = value;
+            });
+
+            axios.post(API_BASE + `/employees/`, {
+                form: formId,
+                data: data
+            })
+            .then(res => {
+                alert("Employee created successfully");
+            })
+            .catch(err => console.log(err.response.data));
+
+        });
+    }
+
     // ================= PAGE LOAD =================
     document.addEventListener("DOMContentLoaded", function() {
         loadProfile();
@@ -229,6 +296,10 @@
         document.getElementById("form_select")
             .addEventListener("change", function() {
                 loadFields(this.value);
+            });
+        document.getElementById("employee_form_select")
+            .addEventListener("change", function() {
+                renderDynamicForm(this.value);
             });
     });
     
