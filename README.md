@@ -67,7 +67,7 @@ worknest/
 - - Password
 - - etc.
 - Add fields dynamically
-- Drag-and-drop reordering (frontend planned)
+- Drag-and-drop reordering
 
 ### Employee Management
 - Create employee using selected dynamic form
@@ -80,6 +80,26 @@ worknest/
 - JWT-based Authentication APIs
 - Employee CRUD APIs
 - Dynamic Form APIs
+
+## API Endpoints
+
+### Auth
+- POST /api/v1/accounts/register/
+- POST /api/v1/accounts/login/
+- POST /api/v1/accounts/change-password/
+- GET  /api/v1/accounts/profile/
+
+### Forms
+- POST /api/v1/forms/
+- GET  /api/v1/forms/
+- POST /api/v1/forms/{id}/fields/
+- GET  /api/v1/forms/{id}/fields/
+- PUT  /api/v1/forms/{id}/fields/reorder/
+
+### Employees
+- POST /api/v1/employees/
+- GET  /api/v1/employees/
+- DELETE /api/v1/employees/{id}/
 
 ## Setup Instructions (Initial)
 ### clone the repository
