@@ -1,18 +1,9 @@
 [tool.black]
 line-length = 88
-target-version = ['py310']
-exclude = '''
-/(
-    migrations
-)/
-'''
+target-version = ["py310"]
+exclude = "migrations"
 
 [tool.isort]
 profile = "black"
 line_length = 88
 skip = ["migrations"]
-
-[tool.flake8]
-max-line-length = 88
-exclude = migrations, __pycache__, env, .venv
-extend-ignore = E203, W503

@@ -21,7 +21,7 @@ The goal is to build a modular Employee Management System that supports:
 - **API Testing**: Postman
 
 ## Current Status
-✅ **Completed**
+**Completed**
 - Initial Django project setup
 - Modular app structure
 - Environment configuration
