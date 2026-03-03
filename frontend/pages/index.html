@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WorkNest - Employee Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+        }
+
+        input {
+            display: block;
+            margin: 8px 0;
+            padding: 6px;
+            width: 250px;
+        }
+
+        button {
+            padding: 6px 12px;
+            margin-top: 5px;
+            cursor: pointer;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        #user-info {
+            margin-top: 20px;
+            font-weight: bold;
+            color: green;
+        }
+    </style>
+</head>
+<body>
+
+<h1>WorkNest</h1>
+
+<!-- ================= REGISTER ================= -->
+<div class="section">
+    <h2>Register</h2>
+    <input type="text" id="reg_username" placeholder="Username">
+    <input type="email" id="reg_email" placeholder="Email">
+    <input type="password" id="reg_password" placeholder="Password">
+    <button onclick="register()">Register</button>
+</div>
+
+<!-- ================= LOGIN ================= -->
+<div class="section">
+    <h2>Login</h2>
+    <input type="text" id="login_username" placeholder="Username">
+    <input type="password" id="login_password" placeholder="Password">
+    <button onclick="login()">Login</button>
+</div>
+
+<!-- ================= USER INFO ================= -->
+<div id="user-info"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+<script>
+    const API_BASE = "api/v1/accounts/";
+
+    function register() {
+        axios.post(API_BASE + "register/", {
+            username: document.getElementById("reg_username").value,
+            email: document.getElementById("reg_email").value,
+            password: document.getElementById("reg_password").value
+        })
+        .then(response => {
+            alert("Registered successfully");
+        })
+        .catch(error => {
+            alert(JSON.stringify(error.response.data));
+        });
+    }
+
+    function login() {
+        axios.post(API_BASE + "login/", {
+            username: document.getElementById("login_username").value,
+            password: document.getElementById("login_password").value
+        })
+        .then(response => {
+            localStorage.setItem("access", response.data.access);
+            localStorage.setItem("refresh", response.data.refresh);
+            window.location.href = "/dashboard/";
+            getProfile();
+        })
+        .catch(error => {
+            alert("Invalid credentials");
+        });
+    }
+
+    function getProfile() {
+        const token = localStorage.getItem("access");
+
+        axios.get("api/v1/accounts/profile/", {
+            headers: {
+                Authorization: "Bearer " + token
+            }
+        })
+        .then(response => {
+            document.getElementById("user-info").innerText =
+                "Logged in as: " + response.data.username;
+        })
+        .catch(error => {
+            console.log(error);
+        });
+    }
+
+    // Auto load profile if token exists
+    if (localStorage.getItem("access")) {
+        getProfile();
+    }
+</script>
+
+</body>
+</html>
