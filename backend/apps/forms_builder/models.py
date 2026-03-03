@@ -11,7 +11,7 @@ class Form(BaseModel):
         return self.name
 
 
-class FormField(models.Model):
+class FormField(BaseModel):
 
     FIELD_TYPES = [
         ("text", "Text"),
