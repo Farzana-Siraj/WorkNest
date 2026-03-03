@@ -62,6 +62,36 @@
     <div id="forms-list"></div>
 </div>
 
+<!-- Field Builder Section  -->
+<hr>
+
+<div class="section">
+    <h2>Form Field Builder</h2>
+
+    <select id="form_select"></select>
+
+    <input type="text" id="field_label" placeholder="Field Label">
+
+    <select id="field_type">
+        <option value="text">Text</option>
+        <option value="number">Number</option>
+        <option value="date">Date</option>
+        <option value="password">Password</option>
+        <option value="email">Email</option>
+    </select>
+
+    <label>
+        <input type="checkbox" id="field_required" checked>
+        Required
+    </label>
+
+    <input type="number" id="field_order" placeholder="Order">
+
+    <button onclick="addField()">Add Field</button>
+
+    <div id="fields-list"></div>
+</div>
+
 <hr>
 
 <!-- ================= EMPLOYEE SECTION ================= -->
@@ -73,6 +103,7 @@
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
 <script>
+    // ================= CONFIG =================
     const API_BASE = "/api/v1";
     const token = localStorage.getItem("access");
 
@@ -84,11 +115,7 @@
     // Attach token automatically
     axios.defaults.headers.common["Authorization"] = "Bearer " + token;
 
-    // Load profile on page load
-    window.onload = function() {
-        loadProfile();
-        loadForms();
-    };
+    // ================= FUNCTIONS =================
 
     // ================= USER PROFILE =================
     function loadProfile() {
@@ -129,7 +156,10 @@
         axios.get(API_BASE + "/forms/create/")
         .then(response => {
             const formsList = document.getElementById("forms-list");
+            const formSelect = document.getElementById("form_select");
+            
             formsList.innerHTML = "";
+            formSelect.innerHTML = "";
 
             response.data.forEach(form => {
                 formsList.innerHTML += `
@@ -139,12 +169,69 @@
                         Created At: ${form.created_at}
                     </div>
                 `;
+                formSelect.innerHTML += `
+                    <option value="${form.id}">
+                        ${form.name}
+                    </option>
+                `;
             });
+            if (response.data.length > 0) {
+                loadFields(response.data[0].id);
+            }
         })
         .catch(error => {
             console.log(error);
         });
     }
+
+    // Add Field Function
+    function addField() {
+        const formId = document.getElementById("form_select").value;
+
+        axios.post(API_BASE + `/forms/${formId}/fields/`, {
+            label: document.getElementById("field_label").value,
+            field_type: document.getElementById("field_type").value,
+            required: document.getElementById("field_required").checked,
+            order: document.getElementById("field_order").value
+        })
+        .then(response => {
+            alert("Field added");
+            loadFields(formId);
+        })
+        .catch(error => console.log(error.response.data));
+    }
+
+    // Load fields for selected form
+    function loadFields(formId) {
+        axios.get(API_BASE + `/forms/${formId}/fields/`)
+        .then(response => {
+            const fieldsList = document.getElementById("fields-list");
+            fieldsList.innerHTML = "";
+
+            response.data.forEach(field => {
+                fieldsList.innerHTML += `
+                    <div class="card">
+                        <strong>${field.label}</strong>
+                        (${field.field_type})
+                        - Order: ${field.order}
+                    </div>
+                `;
+            });
+        })
+        .catch(error => console.log(error));
+    }
+
+    // ================= PAGE LOAD =================
+    document.addEventListener("DOMContentLoaded", function() {
+        loadProfile();
+        loadForms();
+
+        document.getElementById("form_select")
+            .addEventListener("change", function() {
+                loadFields(this.value);
+            });
+    });
+    
 
 </script>
 
